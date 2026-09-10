@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ML-Based Content Prioritization | FlyRank Capstone</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: #f6f7f9;
+    color: #17202a;
+    line-height: 1.7;
+}
+
+.container {
+    width: min(1050px, 92%);
+    margin: auto;
+}
+
+.hero {
+    background: #111827;
+    color: white;
+    padding: 90px 0 80px;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.7;
+    margin-bottom: 18px;
+}
+
+h1 {
+    font-size: clamp(42px, 7vw, 72px);
+    line-height: 1.05;
+    margin: 0 0 25px;
+    max-width: 900px;
+    letter-spacing: -2px;
+}
+
+.hero p {
+    max-width: 760px;
+    font-size: 19px;
+    color: #d1d5db;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.badge {
+    border: 1px solid #374151;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+nav {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.nav-inner {
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    padding: 14px 0;
+}
+
+nav a {
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+nav a:hover {
+    color: #111827;
+}
+
+section {
+    padding: 70px 0;
+}
+
+section:nth-child(even) {
+    background: white;
+}
+
+.section-number {
+    font-size: 13px;
+    font-weight: 800;
+    color: #6b7280;
+    letter-spacing: 2px;
+}
+
+h2 {
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 8px 0 25px;
+    letter-spacing: -0.8px;
+}
+
+h3 {
+    font-size: 21px;
+    margin-top: 32px;
+}
+
+.lead {
+    font-size: 19px;
+    max-width: 850px;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 30px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+}
+
+section:nth-child(even) .card {
+    background: #f8fafc;
+}
+
+.metric {
+    font-size: 35px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+    background: #111827;
+    color: white;
+    font-size: 14px;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+.highlight {
+    border-left: 4px solid #111827;
+    background: #eef2f7;
+    padding: 20px 24px;
+    margin: 25px 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.action {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 22px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.action:last-child {
+    border-bottom: none;
+}
+
+.action-number {
+    font-size: 28px;
+    font-weight: 800;
+    min-width: 45px;
+}
+
+.action h3 {
+    margin: 0 0 6px;
+}
+
+code {
+    background: #eef2f7;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+ul {
+    padding-left: 22px;
+}
+
+footer {
+    background: #111827;
+    color: #9ca3af;
+    padding: 45px 0;
+    font-size: 14px;
+}
+
+footer strong {
+    color: white;
+}
+
+a {
+    color: #374151;
+}
+
+@media (max-width: 750px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    section {
+        padding: 50px 0;
+    }
+
+    .hero {
+        padding: 65px 0;
+    }
+
+    h2 {
+        font-size: 29px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<header class="hero">
+    <div class="container">
+        <div class="eyebrow">FlyRank ML Internship · Applied Search Intelligence</div>
+
+```
+    <h1>ML-Based Content Prioritization for Search Performance</h1>
+
+    <p>
+        Can a simple machine learning model help content teams identify
+        potentially declining content and decide what to review first?
+    </p>
+
+    <div class="badges">
+        <span class="badge">30,000 content records</span>
+        <span class="badge">Logistic Regression</span>
+        <span class="badge">Decision Support</span>
+        <span class="badge">September 2026</span>
+    </div>
+</div>
+```
+
+</header>
+
+<nav>
+    <div class="container nav-inner">
+        <a href="#abstract">Abstract</a>
+        <a href="#problem">Problem</a>
+        <a href="#data">Data</a>
+        <a href="#method">Methodology</a>
+        <a href="#results">Results</a>
+        <a href="#limitations">Limitations</a>
+        <a href="#recommendations">Recommendations</a>
+        <a href="#reproducibility">Reproducibility</a>
+        <a href="#credits">Credits</a>
+    </div>
+</nav>
+
+<main>
+
+<section id="abstract">
+<div class="container">
+
+<div class="section-number">ABSTRACT</div>
+<h2>Five sentences, one research question</h2>
+
+<p class="lead">
+This project asks whether a simple machine learning model can identify
+content with a higher measured likelihood of decline and help a content
+team decide what to review first. The analysis uses 30,000 anonymized
+content records containing search-performance, content, freshness, and
+engagement signals. A Logistic Regression model using five features was
+compared with a simple rule-based baseline on the same evaluation data.
+The model achieved an F1 score of 0.681 on the main random split and
+0.648 on a stricter client-grouped validation, with substantially higher
+recall than the baseline. The resulting output is a ranked
+decision-support queue using REFRESH, REVIEW, and MONITOR actions for
+human editorial review.
+</p>
+
+</div>
+</section>
+
+<section id="problem">
+<div class="container">
+
+<div class="section-number">01 · INTRODUCTION</div>
+<h2>The decision behind the model</h2>
+
+<p class="lead">
+The practical question is simple:
+<strong>which content should a team review first?</strong>
+</p>
+
+<div class="card-grid">
+
+<div class="card">
+<div class="metric">1</div>
+<div class="metric-label">Unit of analysis</div>
+<p>Individual content item.</p>
+</div>
+
+<div class="card">
+<div class="metric">3</div>
+<div class="metric-label">Priority actions</div>
+<p>REFRESH · REVIEW · MONITOR</p>
+</div>
+
+<div class="card">
+<div class="metric">1</div>
+<div class="metric-label">Human decision</div>
+<p>The model prioritizes; an editor decides.</p>
+</div>
+
+</div>
+
+<p>
+A wrong prioritization can waste editorial time, while missing genuinely
+declining content can delay investigation of an important issue.
+Machine learning can help because several search and content signals can
+be considered together instead of relying on one simple rule.
+</p>
+
+<div class="highlight">
+<strong>Important:</strong> The goal is not to automate editorial decisions.
+The goal is to test whether a simple, interpretable model can provide
+better decision-support than a transparent baseline.
+</div>
+
+</div>
+</section>
+
+<section id="data">
+<div class="container">
+
+<div class="section-number">02 · DATA</div>
+<h2>What went into the analysis</h2>
+
+<p>
+The analysis uses the anonymized FlyRank ML Internship dataset containing
+approximately 30,000 content records. The data contains search-performance,
+content, freshness, and engagement signals.
+</p>
+
+<h3>Target definition</h3>
+
+<p>
+A binary label was created from the supplied trend information:
+<code>is_declining_label = 1</code> when
+<code>trend_direction == "down"</code>, otherwise <code>0</code>.
+</p>
+
+<h3>Model features</h3>
+
+<div class="card-grid">
+
+<div class="card">
+<strong>Search volume</strong>
+<p>Demand associated with the content.</p>
+</div>
+
+<div class="card">
+<strong>90-day impressions</strong>
+<p>Recent search visibility.</p>
+</div>
+
+<div class="card">
+<strong>Days since last update</strong>
+<p>Content freshness signal.</p>
+</div>
+
+<div class="card">
+<strong>Average position</strong>
+<p>Search-result position signal.</p>
+</div>
+
+<div class="card">
+<strong>CTR</strong>
+<p>Click-through behaviour.</p>
+</div>
+
+</div>
+
+<h3>Fields deliberately excluded</h3>
+
+<ul>
+<li><code>trend_direction</code> — directly defines the target.</li>
+<li><code>trend_pct</code> — related to the supplied trend outcome.</li>
+<li><code>content_id</code> — identifier only.</li>
+<li><code>client_id</code> — used only for grouped validation, never as a model feature.</li>
+</ul>
+
+<div class="highlight">
+<strong>Leakage check:</strong> target-derived trend fields were excluded from
+the model. Client identifiers were also excluded from prediction.
+A remaining limitation is that an exact future-only label window was not
+available, so temporal overlap cannot be completely ruled out.
+</div>
+
+</div>
+</section>
+
+<section id="method">
+<div class="container">
+
+<div class="section-number">03 · METHODOLOGY</div>
+<h2>Simple model, explicit assumptions</h2>
+
+<h3>Baseline</h3>
+
+<p>
+The first approach was a transparent rule-based priority score using
+<code>impressions_90d</code> and <code>days_since_last_update</code>.
+Higher visibility combined with greater staleness increased review priority.
+The resulting queue was divided into REFRESH, REVIEW, and MONITOR.
+</p>
+
+<h3>Model</h3>
+
+<p>
+The ML model was <strong>Logistic Regression</strong>. It was selected because
+it is fast, relatively easy to interpret, and appropriate for testing
+whether multiple signals provide useful classification beyond the baseline.
+</p>
+
+<h3>Preprocessing</h3>
+
+<p>
+Missing numerical values were handled using median imputation and the
+features were standardized before Logistic Regression.
+</p>
+
+<h3>Validation design</h3>
+
+<p>
+The main evaluation used an 80/20 stratified random split with
+<code>random_state=42</code>.
+A second client-grouped validation kept records from the same client
+together to test stricter generalization across client groups.
+</p>
+
+<div class="highlight">
+<strong>Research framing:</strong> The model predicts the supplied decline
+label. It does not predict Google's algorithm, and it does not establish
+that a content refresh will cause search performance to improve.
+</div>
+
+</div>
+</section>
+
+<section id="results">
+<div class="container">
+
+<div class="section-number">04 · RESULTS</div>
+<h2>Model vs baseline</h2>
+
+<p>
+Both approaches were evaluated on the same main test split.
+The most important difference was recall: the ML model identified
+substantially more of the labelled declining content.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Rule Baseline</th>
+<th>Logistic Regression</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Accuracy</td>
+<td>0.541</td>
+<td>0.557</td>
+</tr>
+
+<tr>
+<td>Precision</td>
+<td>0.596</td>
+<td>0.558</td>
+</tr>
+
+<tr>
+<td>Recall</td>
+<td>0.475</td>
+<td><strong>0.873</strong></td>
+</tr>
+
+<tr>
+<td>F1</td>
+<td>0.529</td>
+<td><strong>0.681</strong></td>
+</tr>
+</tbody>
+</table>
+
+<div class="card-grid">
+
+<div class="card">
+<div class="metric">0.681</div>
+<div class="metric-label">Model F1 · random split</div>
+</div>
+
+<div class="card">
+<div class="metric">0.648</div>
+<div class="metric-label">Model F1 · client grouped</div>
+</div>
+
+<div class="card">
+<div class="metric">54.21%</div>
+<div class="metric-label">Majority-class base rate</div>
+</div>
+
+</div>
+
+<h3>What the numbers mean</h3>
+
+<p>
+The model improves F1 from <strong>0.529 to 0.681</strong> on the main split
+and increases recall from <strong>0.475 to 0.873</strong>.
+The trade-off is lower precision: the model flags more content, including
+some items that are not in the declining class.
+</p>
+
+<p>
+For a screening workflow, this trade-off can be useful because the purpose
+is to create a review queue rather than make automatic publishing or
+content-removal decisions.
+</p>
+
+<h3>Generalization check</h3>
+
+<p>
+The client-grouped validation produced an F1 of <strong>0.648</strong>,
+compared with 0.681 on the random split. The decrease indicates that
+performance is weaker when the model must generalize across client groups.
+</p>
+
+</div>
+</section>
+
+<section id="limitations">
+<div class="container">
+
+<div class="section-number">05 · LIMITATIONS</div>
+<h2>What this analysis cannot claim</h2>
+
+<div class="card-grid">
+
+<div class="card">
+<strong>Not a future-only test</strong>
+<p>
+The available data did not provide an exact future-only label window,
+so this is not a fully time-separated forecasting experiment.
+</p>
+</div>
+
+<div class="card">
+<strong>Proxy target</strong>
+<p>
+The target is based on the supplied trend direction rather than a direct
+future business outcome.
+</p>
+</div>
+
+<div class="card">
+<strong>Limited validation</strong>
+<p>
+The analysis uses a main random split and one client-grouped validation.
+More time-held-out and client-held-out tests would strengthen the result.
+</p>
+</div>
+
+<div class="card">
+<strong>No causal claim</strong>
+<p>
+The analysis does not show that refreshing a page causes its performance
+to improve.
+</p>
+</div>
+
+<div class="card">
+<strong>Dataset scope</strong>
+<p>
+An anonymized internship dataset may not represent every industry,
+website, or search environment.
+</p>
+</div>
+
+<div class="card">
+<strong>Decision-support only</strong>
+<p>
+Scores should support human review, not automatically publish, delete,
+redirect, or rewrite content.
+</p>
+</div>
+
+</div>
+
+<div class="highlight">
+<strong>Honest framing:</strong> The results are measured and directional.
+They demonstrate a useful decision-support experiment, not a production
+guarantee or causal SEO strategy.
+</div>
+
+</div>
+</section>
+
+<section id="recommendations">
+<div class="container">
+
+<div class="section-number">06 · RANKED RECOMMENDATIONS</div>
+<h2>From prediction to action</h2>
+
+<p class="lead">
+The model becomes useful when its scores help an editor decide where to
+spend attention first.
+</p>
+
+<div class="action">
+<div class="action-number">01</div>
+<div>
+<h3>REFRESH</h3>
+<p>
+Start with the highest-priority content. Check whether the page is
+outdated, no longer matches search intent, or has lost useful information.
+</p>
+</div>
+</div>
+
+<div class="action">
+<div class="action-number">02</div>
+<div>
+<h3>REVIEW</h3>
+<p>
+Investigate medium-priority content using additional evidence such as
+recent search performance, content quality, and business importance.
+</p>
+</div>
+</div>
+
+<div class="action">
+<div class="action-number">03</div>
+<div>
+<h3>MONITOR</h3>
+<p>
+Keep lower-priority content under normal observation instead of spending
+immediate editorial resources on it.
+</p>
+</div>
+</div>
+
+<h3>The proposed workflow</h3>
+
+<div class="highlight">
+<strong>Rank → inspect evidence → human decision → action.</strong>
+</div>
+
+<p>
+Confidence in these recommendations is moderate. The model's strong recall
+and improved F1 support its use as a screening layer, but the lower
+client-grouped performance and lack of a fully time-separated evaluation
+limit generalization.
+</p>
+
+</div>
+</section>
+
+<section id="reproducibility">
+<div class="container">
+
+<div class="section-number">07 · REPRODUCIBILITY</div>
+<h2>Everything starts from the notebook</h2>
+
+<p>
+The complete implementation is contained in the capstone notebook:
+<code>work/notebooks/capstone.ipynb</code>
+</p>
+
+<h3>Reproduction flow</h3>
+
+<ol>
+<li>Load the anonymized dataset.</li>
+<li>Define the decline label.</li>
+<li>Remove target-derived and identifier fields.</li>
+<li>Select the five model features.</li>
+<li>Build the rule-based baseline.</li>
+<li>Create the stratified 80/20 split.</li>
+<li>Train Logistic Regression.</li>
+<li>Evaluate model and baseline using the same metrics.</li>
+<li>Run client-grouped validation.</li>
+<li>Generate the ranked action queue and supporting outputs.</li>
+</ol>
+
+<p>
+The main evaluation uses <code>random_state=42</code> for reproducibility.
+The reported values are generated from the capstone notebook rather than
+being manually estimated.
+</p>
+
+<h3>Project repository</h3>
+
+<p>
+The repository contains the assignment notebooks, capstone notebook,
+capstone report, and supporting project files.
+</p>
+
+<p>
+<strong>Repository:</strong>
+<a href="https://github.com/thahsinj06/Fly-rank-ml-internship-work"
+target="_blank">
+github.com/thahsinj06/Fly-rank-ml-internship-work
+</a>
+</p>
+
+</div>
+</section>
+
+<section id="credits">
+<div class="container">
+
+<div class="section-number">08 · ACKNOWLEDGMENTS & DATA CREDIT</div>
+<h2>Data credit</h2>
+
+<p class="lead">
+Built on the FlyRank ML Internship dataset.
+</p>
+
+<p>
+This capstone was developed as part of the FlyRank ML Internship,
+using its anonymized search-intelligence dataset and internship framework.
+</p>
+
+<p>
+<a href="https://flyrank.ai" target="_blank">
+FlyRank — flyrank.ai
+</a>
+</p>
+
+</div>
+</section>
+
+</main>
+
+<footer>
+<div class="container">
+<strong>ML-Based Content Prioritization for Search Performance</strong><br>
+Applied Search Intelligence · FlyRank ML Internship · September 2026
+</div>
+</footer>
+
+</body>
+</html>
